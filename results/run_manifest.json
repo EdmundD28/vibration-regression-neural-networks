@@ -1,0 +1,6 @@
+{
+  "run_seed": 1612835101,
+  "training_samples": 160,
+  "validation_samples": 40,
+  "split": "random 80/20 permutation using run_seed"
+}

@@ -47,8 +47,29 @@ src/
   RunAll_Comparison.py         command-line entry point
 data/                          local-only binary data; not included
 outputs/                       generated artifacts; not versioned
+models/                        trained Keras models from the showcased run
+results/                       metrics, histories and diagnostic figures
 ```
 
+## Published trained models
+
+The repository includes three trained Keras models:
+
+| Model | Input representation | Parameters | Validation mean normalised RMSE |
+|---|---|---:|---:|
+| `feature_fcn.keras` | 8 engineered vibration features | 850 | 0.252 |
+| `time_cnn.keras` | raw 16,000-sample time series | 29,922 | 0.208 |
+| `spectrum_cnn.keras` | 0–500 Hz fixed-resolution amplitude spectrum | 22,562 | 0.629 |
+
+The raw-time CNN performed best on the showcased split. Its validation RMSE was 0.143 V for voltage and 1.459 cm for position. These values come from one seeded 80/20 split of 200 samples; they are evidence for this run, not a confidence interval or a guarantee on new hardware.
+
+The saved networks expect the exact representation and training-fitted standardisation implemented in `src/`. A `.keras` file alone is not a safe end-to-end measurement system.
+
+## Training evidence
+
+`results/` retains the run seed and split summary, complete training histories, per-target training and validation metrics, loss curves, prediction and residual diagnostics, explanation figures and target-space split coverage.
+
+The private raw dataset and hidden-test predictions remain excluded. The included evidence can therefore be audited without redistributing the source data or implying hidden-test accuracy.
 ## Data contract
 
 The original dataset is not redistributed. To run the project, place locally authorised files in `data/` using these names:
@@ -87,7 +108,8 @@ Use an explicit seed for a reproducible split. Omitting `--seed` intentionally c
 
 ## Scope and limitations
 
-- The private source dataset, teaching materials, assessment documents, trained weights and full report are intentionally excluded.
+- The private source dataset, teaching materials, assessment documents and full report are intentionally excluded.
+- Trained weights and selected training/validation evidence are included.
 - Hidden-test predictions cannot support accuracy claims without labels.
 - Model performance is dataset-specific; the pipeline is not a calibrated condition-monitoring product.
 - Public visibility is for portfolio review; it is not an invitation to submit this work for academic credit.

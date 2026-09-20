@@ -20,6 +20,8 @@ outputs_*/
 analysis_outputs/
 *.keras
 *.h5
+!models/
+!models/*.keras
 
 # Local tooling and scratch files
 .pytest_cache/
