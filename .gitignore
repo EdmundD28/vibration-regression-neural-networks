@@ -1,0 +1,29 @@
+.venv/
+.matplotlib/
+.vscode/
+__pycache__/
+*.py[cod]
+
+# Private or licensed inputs
+data/
+*.bin
+*.zip
+*.doc
+*.docx
+*.pdf
+*.ppt
+*.pptx
+
+# Generated artifacts and trained models
+outputs/
+outputs_*/
+analysis_outputs/
+*.keras
+*.h5
+
+# Local tooling and scratch files
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+tmp/
+*.log
