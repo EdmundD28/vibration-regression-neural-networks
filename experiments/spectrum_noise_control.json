@@ -1,0 +1,10 @@
+{
+  "study_name": "section4-spectrum-augmentation",
+  "splits": {"seeds": [53, 153, 253, 353, 453], "validation_fraction": 0.2, "maximum_target_bins": 4},
+  "training": {"epochs": 200, "batch_size": 16, "patience": 20},
+  "experiments": [
+    {"id": "spectrum_average_noise_0", "method": "spectrum", "model_kind": "neural", "architecture": "average_pooling", "noise_standard_deviation": 0.0},
+    {"id": "spectrum_average_noise_001", "method": "spectrum", "model_kind": "neural", "architecture": "average_pooling", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_average_noise_002", "method": "spectrum", "model_kind": "neural", "architecture": "average_pooling", "noise_standard_deviation": 0.02}
+  ]
+}

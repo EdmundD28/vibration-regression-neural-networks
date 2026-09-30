@@ -1,4 +1,4 @@
-"""Run the modular vibration analysis and compare three approaches.
+"""Run the modular vibration analysis and compare the three approaches.
 
 The code order matches the five required report sections:
 
@@ -123,7 +123,7 @@ def parseArguments():
 
 
 # =============================================================================
-# Step-by-step analysis under one shared experimental protocol
+# Step-by-step analysis in the same order as the report and lab sheets
 # =============================================================================
 
 def main():
@@ -169,7 +169,7 @@ def main():
         f,
     ) = prepareSpectrumInputs(xTrain, xTest, trainIndices)
 
-    print("Vibration regression data check")
+    print("Vibration-regression data check")
     print(f"Run seed: {runSeed}")
     print(
         f"Training/test signals: {xTrain.shape} / {xTest.shape}"

@@ -1,0 +1,141 @@
+{
+  "study_name": "section2-fcn-corrected-selection",
+  "splits": {
+    "seeds": [53, 153, 253, 353, 453],
+    "validation_fraction": 0.2,
+    "maximum_target_bins": 4
+  },
+  "training": {
+    "epochs": 200,
+    "batch_size": 16,
+    "patience": 20
+  },
+  "experiments": [
+    {
+      "id": "fcn_rect_small_all",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "small",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "all"
+    },
+    {
+      "id": "fcn_rect_adopted_all",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "all"
+    },
+    {
+      "id": "fcn_rect_wide_all",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "wide",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "all"
+    },
+    {
+      "id": "fcn_hann_adopted_all",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "hann",
+      "fundamental_rule": "band_peak",
+      "feature_set": "all"
+    },
+    {
+      "id": "fcn_rect_amplitude_shape",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "amplitude_shape"
+    },
+    {
+      "id": "fcn_rect_frequency_distribution",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "frequency_distribution"
+    },
+    {
+      "id": "rect_drop_rms",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:rms_g"
+    },
+    {
+      "id": "rect_drop_peak_to_peak",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:peak_to_peak_g"
+    },
+    {
+      "id": "rect_drop_crest_factor",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:crest_factor"
+    },
+    {
+      "id": "rect_drop_kurtosis",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:kurtosis"
+    },
+    {
+      "id": "rect_drop_dominant_frequency",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:dominant_frequency_Hz"
+    },
+    {
+      "id": "rect_drop_dominant_amplitude",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:dominant_amplitude_g"
+    },
+    {
+      "id": "rect_drop_high_frequency_ratio",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:high_frequency_power_ratio"
+    },
+    {
+      "id": "rect_drop_spectral_centroid",
+      "method": "feature",
+      "model_kind": "neural",
+      "architecture": "adopted",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "feature_set": "drop:spectral_centroid_Hz"
+    }
+  ]
+}

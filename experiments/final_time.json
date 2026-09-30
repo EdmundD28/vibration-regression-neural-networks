@@ -1,0 +1,23 @@
+{
+  "study_name": "section3-time-final-xai",
+  "splits": {
+    "seeds": [53, 153, 253, 353, 453],
+    "validation_fraction": 0.2,
+    "maximum_target_bins": 4
+  },
+  "training": {
+    "epochs": 200,
+    "batch_size": 16,
+    "patience": 20
+  },
+  "experiments": [
+    {
+      "id": "time_aggressive_final",
+      "method": "time",
+      "model_kind": "neural",
+      "architecture": "aggressive",
+      "noise_standard_deviation": 0.0,
+      "collect_xai": true
+    }
+  ]
+}

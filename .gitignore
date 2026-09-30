@@ -3,9 +3,10 @@
 .vscode/
 __pycache__/
 *.py[cod]
-
-# Private or licensed inputs
 data/
+outputs/
+outputs_*/
+tmp/
 *.bin
 *.zip
 *.doc
@@ -13,19 +14,9 @@ data/
 *.pdf
 *.ppt
 *.pptx
-
-# Generated artifacts and trained models
-outputs/
-outputs_*/
-analysis_outputs/
 *.keras
 *.h5
-!models/
-!models/*.keras
-
-# Local tooling and scratch files
+*.log
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-tmp/
-*.log

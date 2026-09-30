@@ -1,121 +1,75 @@
-# Physics-Informed Vibration Regression
+# Vibration Measurement to Neural Network Analysis
 
-An end-to-end machine-learning pipeline for estimating two continuous operating parameters from accelerometer recordings. The project compares three representations under one shared validation and reporting protocol:
+An engineering case study tracing a rotating-beam vibration problem from early sensor and ADC estimates through laboratory acquisition, signal processing, model selection and repeated validation.
 
-- physically interpretable time- and frequency-domain features with a fully connected network;
-- raw 16,000-sample time series with a one-dimensional convolutional network;
-- fixed-resolution amplitude spectra with a one-dimensional convolutional network.
+The [first acquisition design](docs/01-first-acquisition-design.md) explains the original physical estimate and component proposal. The [lab acquisition report](docs/02-lab-acquisition-and-validation.md) records how the design changed with the supplied hardware and measured signal. The [model-selection report](docs/03-model-selection-and-stability.md) follows the later supplied data through a feature network, a raw-time CNN and a spectrum CNN.
 
-The emphasis is not just prediction accuracy. The pipeline also tests data integrity, prevents preprocessing leakage, records reproducibility metadata, produces per-target metrics, and generates explanation artifacts for comparing what each model has learned.
+## Read the project in order
 
-## Why this project matters
-
-Vibration signals encode several physical effects at once. Rotational frequency can be strongly informative for one target, while amplitude and distributional shape may carry more information about another. A single opaque model can hide that distinction. This project keeps three modelling paths comparable so that accuracy, robustness and physical plausibility can be judged together.
+1. [Initial measurement design](docs/01-first-acquisition-design.md): rotating-unbalance model, proposed sensor, range and sampling requirements.
+2. [ADC and sampling decisions](docs/02-lab-acquisition-and-validation.md): differential ADS1015 input, ±2.048 V range, 0.01 µF filter, 1,600 samples/s, 10 s records and lab checks.
+3. [Models and stable evidence](docs/03-model-selection-and-stability.md): conversions, three input representations, five shared validation splits, controlled design choices and limitations.
+4. [Evidence and experiment configurations](evidence/README.md): summary CSVs and selected figures linked to the claims.
 
 ```mermaid
 flowchart LR
-    A[Raw accelerometer records] --> B[Validation and unit conversion]
-    B --> C[Engineered features]
-    B --> D[Raw time series]
-    B --> E[Fixed-resolution spectrum]
-    C --> F[Feature FCN]
-    D --> G[Time-series CNN]
-    E --> H[Spectrum CNN]
-    F --> I[Shared metrics and explanations]
-    G --> I
-    H --> I
+  A["Physical estimate<br/>and component proposal"] --> B["ADXL335 + ADS1015<br/>lab configuration"]
+  B --> C["1,600 Hz × 10 s<br/>vibration records"]
+  C --> D["Feature FCN"]
+  C --> E["Raw-time CNN"]
+  C --> F["Spectrum CNN"]
+  D --> G["Five shared<br/>validation splits"]
+  E --> G
+  F --> G
 ```
 
-## Technical highlights
+## What the final comparison found
 
-- two-output regression with target normalisation;
-- preprocessing fitted on the training partition only;
-- a shared train/validation split for fair model comparison;
-- physics-aware fundamental-frequency extraction with harmonic safeguards;
-- MAE, RMSE, R² and target-standard-deviation-normalised RMSE;
-- target-specific feature and grouped input relevance analysis;
-- saved run manifests, predictions, training histories and diagnostic plots.
+The later modelling study used **200 labelled records**, five fixed target-aware 80/20 splits and training-only normalisation. The table reports mean ± standard deviation over those splits; it is not accuracy on the 50 unlabelled test records.
 
-## Repository layout
+| Method | Mean normalised RMSE | Voltage RMSE | Position RMSE |
+|---|---:|---:|---:|
+| Seven-feature FCN, 818 parameters | **0.208 ± 0.015** | **0.126 ± 0.009 V** | 1.514 ± 0.169 cm |
+| Raw-time CNN, 29,922 parameters | 0.209 ± 0.042 | 0.176 ± 0.038 V | **1.305 ± 0.322 cm** |
+| Spectrum CNN, 22,562 parameters | 0.582 ± 0.062 | 0.509 ± 0.069 V | 3.555 ± 0.351 cm |
+
+The compact feature model is the primary choice for the joint task. The time CNN is preferable when position accuracy is the priority. A simulated +5% held-out sensor-gain change increased mean normalised RMSE by 0.0057 for the time CNN and 0.0189 for the feature model; this is evidence about one tested perturbation, not deployment reliability.
+
+## Repository map
 
 ```text
-src/
-  DataAnalysis_Common.py       shared loading, splitting, training and metrics
-  FeatureFCN_Analysis.py       engineered features and fully connected model
-  TimeSeriesCNN_Analysis.py    raw-signal preparation and 1D CNN
-  SpectrumNetwork_Analysis.py  spectral preparation and 1D CNN
-  RunAll_Comparison.py         command-line entry point
-data/                          local-only binary data; not included
-outputs/                       generated artifacts; not versioned
-models/                        trained Keras models from the showcased run
-results/                       metrics, histories and diagnostic figures
+docs/         public editions of the measurement and model reports
+src/          final analysis and repeated-study code
+experiments/  declared model-selection and validation configurations
+evidence/     summary metrics, selected figures and stress-test results
+archive/      earlier single-split trained Keras files and plots
 ```
 
-## Published trained models
+The three Keras files under [the archive](archive/initial-single-split/) belong to an **earlier single-split run**. They are kept as historical trained artifacts. They are not the five-split models behind the table above; those experiments produced one fitted model per split and did not designate a single exported final weight file.
 
-The repository includes three trained Keras models:
+## Reproducing the analysis
 
-| Model | Input representation | Parameters | Validation mean normalised RMSE |
-|---|---|---:|---:|
-| `feature_fcn.keras` | 8 engineered vibration features | 850 | 0.252 |
-| `time_cnn.keras` | raw 16,000-sample time series | 29,922 | 0.208 |
-| `spectrum_cnn.keras` | 0–500 Hz fixed-resolution amplitude spectrum | 22,562 | 0.629 |
+Python 3.12 and the packages in [requirements.txt](requirements.txt) were used. The original course-supplied binary data are not redistributed. With locally authorised data, place the following files in `data/`:
 
-The raw-time CNN performed best on the showcased split. Its validation RMSE was 0.143 V for voltage and 1.459 cm for position. These values come from one seeded 80/20 split of 200 samples; they are evidence for this run, not a confidence interval or a guarantee on new hardware.
-
-The saved networks expect the exact representation and training-fitted standardisation implemented in `src/`. A `.keras` file alone is not a safe end-to-end measurement system.
-
-## Training evidence
-
-`results/` retains the run seed and split summary, complete training histories, per-target training and validation metrics, loss curves, prediction and residual diagnostics, explanation figures and target-space split coverage.
-
-The private raw dataset and hidden-test predictions remain excluded. The included evidence can therefore be audited without redistributing the source data or implying hidden-test accuracy.
-## Data contract
-
-The original dataset is not redistributed. To run the project, place locally authorised files in `data/` using these names:
-
-| File | Expected content |
+| File | Expected shape and type |
 |---|---|
-| `training_signals.bin` | 200 records × 16,000 signed 16-bit ADC samples |
-| `testing_signals.bin` | 50 records × 16,000 signed 16-bit ADC samples |
+| `training_signals.bin` | 200 × 16,000 signed 16-bit ADC counts |
+| `testing_signals.bin` | 50 × 16,000 signed 16-bit ADC counts |
 | `training_targets.bin` | 200 pairs of 64-bit floating-point targets |
-
-The acquisition assumptions used by the code are 1,600 Hz sampling, 10-second records, a ±2.048 V ADC range and 0.330 V/g accelerometer sensitivity. If your hardware or binary format differs, update the constants and loader before using the models.
-
-## Quick start
-
-Python 3.12 is recommended.
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe .\src\RunAll_Comparison.py --check-only
+.\.venv\Scripts\python.exe .\src\RunReportStudies.py --config .\experiments\final_feature.json --check-only
+.\.venv\Scripts\python.exe .\src\RunReportStudies.py --config .\experiments\final_feature.json
 ```
 
-Run a short smoke test:
+The time and spectrum configurations can be run by changing `--config` to `final_time.json` or `final_spectrum.json`. Each real run writes a new timestamped folder beneath `outputs/studies/`. The published CSVs document the original runs; numerical equality across hardware and library versions is not guaranteed.
 
-```powershell
-.\.venv\Scripts\python.exe .\src\RunAll_Comparison.py --models feature --epochs 1 --patience 1 --output-dir .\outputs_smoke
-```
+## Provenance and scope
 
-Run the full comparison:
+The initial measurement design and final data-analysis report were individual work by Edmund Dai. The laboratory acquisition report was a five-person Group 15 project; the public acquisition document adapts Edmund's parameter-selection contribution and attributes the group's validation observations. The full group report, other students' identifiers, course handouts, original signals and hidden-test predictions are not included.
 
-```powershell
-.\.venv\Scripts\python.exe .\src\RunAll_Comparison.py --seed 53
-```
+The first physical estimate and later laboratory observations differ, and the later 200-record analysis uses a separately supplied dataset with its own stated accelerometer sensitivity. Those changes are documented rather than hidden.
 
-Use an explicit seed for a reproducible split. Omitting `--seed` intentionally creates a fresh seed and prints it for later reuse.
-
-## Scope and limitations
-
-- The private source dataset, teaching materials, assessment documents and full report are intentionally excluded.
-- Trained weights and selected training/validation evidence are included.
-- Hidden-test predictions cannot support accuracy claims without labels.
-- Model performance is dataset-specific; the pipeline is not a calibrated condition-monitoring product.
-- Public visibility is for portfolio review; it is not an invitation to submit this work for academic credit.
-
-## Licence
-
-Copyright © 2026 Edmund Dai. All rights reserved.
-
-The repository is publicly viewable, but no permission is granted to copy, modify, redistribute or submit this work as academic work. A formal open-source licence can be added later if broader reuse is intended.
+Copyright © 2026 Edmund Dai. All rights reserved. Public visibility does not grant permission to reuse the work for an academic submission.

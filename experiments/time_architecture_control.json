@@ -1,0 +1,29 @@
+{
+  "study_name": "section3-time-architecture-selection",
+  "splits": {
+    "seeds": [53, 153, 253, 353, 453],
+    "validation_fraction": 0.2,
+    "maximum_target_bins": 4
+  },
+  "training": {
+    "epochs": 200,
+    "batch_size": 16,
+    "patience": 20
+  },
+  "experiments": [
+    {
+      "id": "time_aggressive_control",
+      "method": "time",
+      "model_kind": "neural",
+      "architecture": "aggressive",
+      "noise_standard_deviation": 0.0
+    },
+    {
+      "id": "time_gentle_control",
+      "method": "time",
+      "model_kind": "neural",
+      "architecture": "gentle",
+      "noise_standard_deviation": 0.0
+    }
+  ]
+}

@@ -38,7 +38,7 @@ TRAINING_SIGNALS_FILENAME = "training_signals.bin"
 TESTING_SIGNALS_FILENAME = "testing_signals.bin"
 TRAINING_TARGETS_FILENAME = "training_targets.bin"
 
-# Compact symbols used throughout the analysis:
+# Use the same basic symbols as the lab sheets:
 # Ntrain/Ntest = number of signals, L = samples per signal, fs = sample rate.
 Ntrain = 200
 Ntest = 50
