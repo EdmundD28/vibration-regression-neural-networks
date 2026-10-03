@@ -449,6 +449,7 @@ def saveOutputs(
     groupedRelevance,
     runSeed,
     showFigures,
+    spectrumArchitecture=None,
 ):
     """Save models, metrics, predictions and comparison figures."""
     outputFolder.mkdir(parents=True, exist_ok=True)
@@ -568,6 +569,7 @@ def saveOutputs(
                 "training_samples": len(trainIndices),
                 "validation_samples": len(validationIndices),
                 "split": "random 80/20 permutation using run_seed",
+                "spectrum_architecture": spectrumArchitecture,
             },
             file,
             indent=2,

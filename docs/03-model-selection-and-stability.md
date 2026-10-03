@@ -40,38 +40,62 @@ Only 200 labelled examples were available, so each choice was checked on the **s
 | Feature network size | 8–8, 32–16 and 64–32 hidden widths | Select 32–16 and 818 parameters. The 64–32 model was marginally lower at 0.202 versus 0.208 but used 2,658 parameters. |
 | Time CNN sampling reduction | Aggressive versus gentler convolution/pooling | Aggressive path: 0.209 mean normalised RMSE versus 0.224 for the gentler path. |
 | Time CNN training noise | Standard deviations 0, 0.01 and 0.02 | Select zero. Noise 0.01 slightly lowered the overall average but worsened voltage RMSE. |
-| Spectrum global pooling | Average versus maximum | Average pooling: 0.592 mean normalised RMSE versus 0.691 for maximum under the matched no-noise control. |
-| Spectrum training noise | Standard deviations 0, 0.01 and 0.02 | Select 0.01: 0.582 mean normalised RMSE; small gain relative to split variation. |
+| Historical spectrum global pooling | Average versus maximum | Average pooling: 0.592 mean normalised RMSE versus 0.691 for maximum under the matched no-noise control. |
+| Historical spectrum training noise | Standard deviations 0, 0.01 and 0.02 | Select 0.01: 0.582 mean normalised RMSE; small gain relative to split variation. |
+
+The later readout study held the spectrum input, convolutional backbone and noise 0.01 fixed, then compared five position-preserving candidates with global-average and raw-time controls. Band aggregation gave the lowest selection mean normalised RMSE among those candidates (0.265), ahead of full flattening (0.281), and was frozen before new-split confirmation. Its ordered 13 × 64 responses preserve coarse frequency location. Across selection, capacity and confirmation stages, 60 model/split runs were completed.
 
 These are bounded comparisons, not a global architecture search. The [published configurations](../experiments/) and [summary evidence](../evidence/) retain the decision trail.
 
-## 4. Final repeated-validation results
+## 4. Adopted architectures and repeated-validation results
 
-| Selected method | Parameters | Mean normalised RMSE | Voltage RMSE | Position RMSE |
+| Adopted model | Optimised architecture | Parameters |
+|---|---|---:|
+| Feature FCN | Seven physical features, crest factor removed → Dense(32) → Dense(16) → two linear outputs; no training noise | 818 |
+| Raw-time CNN | Full 16,000 samples → Conv1D 16/32/64, kernels 33/17/9, strides 4/2/2, local MaxPool(4) → global maximum → Dense(32) → two linear outputs; no training noise | 29,922 |
+| Revised spectrum CNN | 5,001 log-amplitude bins → Conv1D 16/32/64, kernels 21/11/7, local MaxPool(4) → AveragePool(6) → Flatten (13 × 64) → Dense(32) → two linear outputs; training noise 0.01 | 47,138 |
+
+The original five selection assignments support the three-model comparison below. Feature metrics are retained from the original feature evaluation; raw-time and revised spectrum metrics were evaluated again on those assignments in the readout study. The older raw-time study scored 0.209 ± 0.042 mean normalised RMSE, 0.176 ± 0.038 V and 1.305 ± 0.322 cm; those historical numbers remain in its original evidence files rather than being mixed into the updated table.
+
+| Selected model | Mean normalised RMSE | Voltage RMSE | Position RMSE |
+|---|---:|---:|---:|
+| Seven-feature FCN | **0.208 ± 0.015** | **0.126 ± 0.009 V** | 1.514 ± 0.169 cm |
+| Raw-time CNN, re-evaluated | 0.213 ± 0.040 | 0.182 ± 0.037 V | **1.315 ± 0.310 cm** |
+| Revised spectrum CNN | 0.265 ± 0.034 | 0.246 ± 0.062 V | 1.555 ± 0.078 cm |
+
+After freezing the band-aggregation candidate, five new split assignments (1053, 1153, 1253, 1353 and 1453) compared it with both global-average controls and a matched raw-time reference. Feature FCN was not rerun in this confirmation stage.
+
+| Frozen model / control | Parameters | Mean normalised RMSE | Voltage RMSE | Position RMSE |
 |---|---:|---:|---:|---:|
-| Seven-feature FCN, 32–16 | 818 | 0.208 ± 0.015 | 0.126 ± 0.009 V | 1.514 ± 0.169 cm |
-| Raw-time CNN, 16/32/64 filters | 29,922 | 0.209 ± 0.042 | 0.176 ± 0.038 V | **1.305 ± 0.322 cm** |
-| Spectrum CNN, 16/32/64 filters | 22,562 | 0.582 ± 0.062 | 0.509 ± 0.069 V | 3.555 ± 0.351 cm |
+| Historical global-average spectrum | 22,562 | 0.590 ± 0.071 | 0.506 ± 0.057 V | 3.632 ± 0.499 cm |
+| Wide global-average spectrum | 180,280 | 0.547 ± 0.030 | 0.468 ± 0.032 V | 3.369 ± 0.194 cm |
+| Revised band-aggregation spectrum | 47,138 | 0.252 ± 0.023 | 0.242 ± 0.030 V | **1.434 ± 0.124 cm** |
+| Matched raw-time reference | 29,922 | **0.230 ± 0.030** | **0.181 ± 0.026 V** | 1.487 ± 0.227 cm |
 
-The feature FCN is the compact primary choice for the joint task and predicts voltage most accurately. The raw-time CNN predicts position most accurately. Their overall means are nearly tied, but the time CNN varies more across splits. The amplitude-spectrum CNN is materially weaker. The discarded phase and time ordering are a plausible contributor to its poor position results; this comparison alone does not prove the physical cause.
+The revised spectrum model reduced mean normalised RMSE by 57.4% against the original global-average model, with both physical target errors improving on every paired split. A global-average model enlarged to 180,280 parameters remained weak. The input still contains the same 0–500 Hz amplitude spectrum, so loss of explicit frequency location during aggregation is supported as an important architectural bottleneck. Phase is discarded by amplitude spectra, but its absence has not been established as the cause of the historical failure; neither has pooling been proved the sole cause of the remaining gap.
+
+Position RMSE was close to raw-time performance: 1.434 versus 1.487 cm, a 3.6% lower mean with only three of five paired wins. Voltage RMSE remained 33.2% higher, on all five splits, and joint error was 9.4% higher. Overall parity was not achieved under the declared 5% tolerance. The feature FCN remains the compact primary recommendation; raw-time CNN remains the stronger overall CNN; band aggregation is a credible position alternative.
+
+![Frozen readout confirmation on five new splits](../evidence/spectrum-readout/confirmation/performance_summary.png)
 
 ![Aggressive and gentle raw-time CNN architectures compared across five validation splits](../evidence/time-cnn/architecture_comparison.png)
 
-In a shared stress test, each held-out acceleration record was multiplied by 1.05 after training. Mean normalised RMSE changed by +0.0189 for the feature FCN, +0.0057 for the time CNN and −0.0013 for the spectrum CNN. The time CNN was more stable than the competitive feature model under **this one simulated gain change**. The spectrum model's near-invariance did not overcome its poor clean accuracy.
+The earlier shared stress test multiplied each held-out acceleration record by 1.05 after training. Mean normalised RMSE changed by +0.0189 for the feature FCN, +0.0057 for the time CNN and −0.0013 for the **historical global-average spectrum model**. The time CNN was more stable than the competitive feature model under this one simulated gain change. The historical spectrum result cannot be attributed to the revised readout, whose gain robustness and frequency-band explanation have not yet been evaluated.
 
-![Clean and plus-five-percent gain comparison](../evidence/gain-stress/comparison.png)
+![Historical clean and plus-five-percent gain comparison](../evidence/gain-stress/comparison.png)
 
 ## 5. What “stable output” means here
 
-It means the models were run across five fixed, comparable validation splits; their mean errors and split-to-split variation were reported; architecture and augmentation choices were checked with matched controls; and a small calibration-shift test challenged the final selection. It does **not** mean that any one exported Keras file has been externally validated on a new sensor, motor or beam.
+It means model choices were checked on five fixed, comparable selection splits, and the frozen spectrum candidate was additionally checked on five new shared splits; their mean errors and split-to-split variation were reported; architecture and augmentation choices were checked with matched controls; and a small calibration-shift test challenged the final selection. It does **not** mean that any one exported Keras file has been externally validated on a new sensor, motor or beam.
 
-The original public repository snapshot contained three Keras files and plots from an earlier **single random split**. They are preserved in [the historical snapshot](../archive/initial-single-split/) with their original run seed. Those weights must not be confused with the final five-split estimates above. The repeated experiments saved metrics and predictions, not one canonical trained model file per method.
+The original public repository snapshot contained three Keras files and plots from an earlier **single random split**. They are preserved in [the historical snapshot](../archive/initial-single-split/) with their original run seed. Those weights must not be confused with the final five-split estimates above. The repeated experiments saved metrics and predictions, not one canonical trained model file per method. A separate [representative revised spectrum model](../models/spectrum-band/) now includes its fitted preprocessing scales and verified save/reload behaviour. It used 160 training and 40 validation records and is not a fit on all 200 records. Repeated holdouts overlap and use validation for early stopping; new seeds are stability evidence, not an independent external test or a significance claim.
 
 ## Evidence and provenance
 
 - [Feature selection and 818-parameter FCN](../evidence/feature-fcn/) — adopted row and ablations from the corrected 70-run study.
 - [Raw-time CNN](../evidence/time-cnn/) — architecture control, noise control and final five-split metrics.
-- [Spectrum CNN](../evidence/spectrum-cnn/) — pooling control, noise control and final five-split metrics.
+- [Historical spectrum CNN](../evidence/spectrum-cnn/) — old global-pooling/noise controls and model-specific explanation.
+- [Revised spectrum readout](../evidence/spectrum-readout/) — selection, capacity control, frozen confirmation, per-split metrics and split assignments.
 - [Shared gain stress test](../evidence/gain-stress/) — clean and +5% held-out comparison.
 
 Source: Edmund Dai, *Data Analysis Report*, 2026 Term 2, sections 1–5; project experiment manifests and result files. The report contains figures and assignment material not reproduced in this public edition.

@@ -365,6 +365,10 @@ def _savePerformanceFigure(studyFolder, summaryRows):
         {row["experiment_id"] for row in summaryRows}
     )
     displayLabels = {
+        "feature_linear": "Linear feature reference",
+        "feature_fcn": "Feature FCN",
+        "time_cnn": "Raw-time CNN",
+        "spectrum_cnn": "Spectrum CNN",
         "fcn_hann_adopted_all": "Hann window",
         "fcn_rect_adopted_all": "Rectangular window",
         "fcn_rect_amplitude_shape": "Amplitude features",
@@ -386,6 +390,14 @@ def _savePerformanceFigure(studyFolder, summaryRows):
         "spectrum_average_noise_002": "Noise 0.02",
         "spectrum_average_pooling": "Average pooling",
         "spectrum_max_pooling": "Maximum pooling",
+        "spectrum_gap_control": "Global average (baseline)",
+        "spectrum_flatten": "Preserve all positions",
+        "spectrum_band_pooling": "Preserve frequency bands",
+        "spectrum_compact_flatten": "Compact position readout",
+        "spectrum_gap_wide": "Global average (matched size)",
+        "time_raw_reference": "Raw-time CNN",
+        "spectrum_flatten_linear": "Position readout (linear head)",
+        "spectrum_fine_pooling_linear": "Finer positions (linear head)",
     }
     missingLabels = set(experiments) - set(displayLabels)
     if missingLabels:

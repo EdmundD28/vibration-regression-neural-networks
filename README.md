@@ -23,17 +23,38 @@ flowchart LR
   F --> G
 ```
 
-## What the final comparison found
+## Executive summary: adopted architectures and performance
 
-The later modelling study used **200 labelled records**, five fixed target-aware 80/20 splits and training-only normalisation. The table reports mean ± standard deviation over those splits; it is not accuracy on the 50 unlabelled test records.
+The project estimates motor voltage and sensor position jointly from **200 labelled vibration records**. The architectures below are the choices adopted after bounded feature, architecture and noise comparisons; they are not claimed to be globally optimal.
 
-| Method | Mean normalised RMSE | Voltage RMSE | Position RMSE |
+| Adopted model | Optimised architecture | Parameters |
+|---|---|---:|
+| Feature FCN | Seven physical features, crest factor removed → Dense(32) → Dense(16) → two linear outputs; no training noise | 818 |
+| Raw-time CNN | Full 16,000 samples → Conv1D 16/32/64, kernels 33/17/9, strides 4/2/2, local MaxPool(4) → global maximum → Dense(32) → two linear outputs; no training noise | 29,922 |
+| Revised spectrum CNN | 5,001 log-amplitude bins → Conv1D 16/32/64, kernels 21/11/7, local MaxPool(4) → AveragePool(6) → Flatten (13 × 64) → Dense(32) → two linear outputs; training noise 0.01 | 47,138 |
+
+The following means ± standard deviations use the original five target-aware 80/20 split assignments (seeds 53, 153, 253, 353 and 453). The feature-FCN result is retained from its original evaluation; raw-time and spectrum results were evaluated again in the readout study on those same assignments. These are validation metrics, not accuracy on the 50 unlabelled test records.
+
+| Selected model | Mean normalised RMSE | Voltage RMSE | Position RMSE |
 |---|---:|---:|---:|
-| Seven-feature FCN, 818 parameters | **0.208 ± 0.015** | **0.126 ± 0.009 V** | 1.514 ± 0.169 cm |
-| Raw-time CNN, 29,922 parameters | 0.209 ± 0.042 | 0.176 ± 0.038 V | **1.305 ± 0.322 cm** |
-| Spectrum CNN, 22,562 parameters | 0.582 ± 0.062 | 0.509 ± 0.069 V | 3.555 ± 0.351 cm |
+| Seven-feature FCN | **0.208 ± 0.015** | **0.126 ± 0.009 V** | 1.514 ± 0.169 cm |
+| Raw-time CNN, re-evaluated | 0.213 ± 0.040 | 0.182 ± 0.037 V | **1.315 ± 0.310 cm** |
+| Revised spectrum CNN | 0.265 ± 0.034 | 0.246 ± 0.062 V | 1.555 ± 0.078 cm |
 
-The compact feature model is the primary choice for the joint task. The time CNN is preferable when position accuracy is the priority. A simulated +5% held-out sensor-gain change increased mean normalised RMSE by 0.0057 for the time CNN and 0.0189 for the feature model; this is evidence about one tested perturbation, not deployment reliability.
+The selected spectrum readout was then frozen and compared with the original architecture, a larger capacity control and the raw-time reference on **five new split assignments** (1053, 1153, 1253, 1353 and 1453):
+
+| Frozen model / control | Parameters | Mean normalised RMSE | Voltage RMSE | Position RMSE |
+|---|---:|---:|---:|---:|
+| Historical global-average spectrum | 22,562 | 0.590 ± 0.071 | 0.506 ± 0.057 V | 3.632 ± 0.499 cm |
+| Wide global-average spectrum | 180,280 | 0.547 ± 0.030 | 0.468 ± 0.032 V | 3.369 ± 0.194 cm |
+| Revised band-aggregation spectrum | 47,138 | 0.252 ± 0.023 | 0.242 ± 0.030 V | **1.434 ± 0.124 cm** |
+| Matched raw-time reference | 29,922 | **0.230 ± 0.030** | **0.181 ± 0.026 V** | 1.487 ± 0.227 cm |
+
+Keeping the same amplitude-spectrum input, ordered band aggregation reduced confirmation mean normalised RMSE by **57.4%** relative to global averaging and improved both targets on all five paired splits. The much larger global-average control remained weak, supporting loss of explicit frequency location as an important architectural bottleneck. Missing phase is not an established explanation for the historical failure, and pooling is not proven to be its sole cause.
+
+The revised spectrum model approached raw-time position accuracy: its mean position error was 3.6% lower, with only **three of five** paired wins. Voltage error was 33.2% higher and joint error 9.4% higher, so it did **not** meet the declared 5% overall-parity tolerance. The seven-feature FCN remains the compact primary recommendation for voltage accuracy and model size; raw-time CNN remains the stronger overall CNN. Band aggregation is now a credible position alternative.
+
+The split assignments reuse the same 200 records, and validation also controls early stopping. Confirmation therefore checks stability rather than independent external-test accuracy or statistical significance. Earlier gain and frequency-band explanation results apply to the historical global-average spectrum model only; revised-model robustness and explainability remain untested.
 
 ## Repository map
 
@@ -42,6 +63,7 @@ docs/         public editions of the measurement and model reports
 src/          final analysis and repeated-study code
 experiments/  declared model-selection and validation configurations
 evidence/     summary metrics, selected figures and stress-test results
+models/       representative revised spectrum model and preprocessing scales
 archive/      earlier single-split trained Keras files and plots
 ```
 
@@ -64,7 +86,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe .\src\RunReportStudies.py --config .\experiments\final_feature.json
 ```
 
-The time and spectrum configurations can be run by changing `--config` to `final_time.json` or `final_spectrum.json`. Each real run writes a new timestamped folder beneath `outputs/studies/`. The published CSVs document the original runs; numerical equality across hardware and library versions is not guaranteed.
+The time and spectrum configurations can be run by changing `--config` to `final_time.json` or `final_spectrum.json` (the revised band-aggregation model). The three `spectrum_position_*_study.json` configurations reproduce the readout selection, capacity check and frozen confirmation stages. Each real run writes a new timestamped folder beneath `outputs/studies/`. Run `python src/VerifySpectrumReadouts.py` to check all eight readouts, matched initial backbones, position retention and save/reload agreement. The [representative revised model](models/spectrum-band/) includes its fitted preprocessing scales. The published CSVs document the original runs; numerical equality across hardware and library versions is not guaranteed.
 
 ## Provenance and scope
 

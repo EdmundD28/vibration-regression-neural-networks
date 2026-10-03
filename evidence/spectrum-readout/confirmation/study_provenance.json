@@ -1,0 +1,92 @@
+{
+  "configuration": {
+    "study_name": "spectrum-position-readout-confirmation",
+    "splits": {
+      "seeds": [
+        1053,
+        1153,
+        1253,
+        1353,
+        1453
+      ],
+      "validation_fraction": 0.2,
+      "maximum_target_bins": 4
+    },
+    "training": {
+      "epochs": 200,
+      "batch_size": 16,
+      "patience": 20
+    },
+    "research_protocol": {
+      "frozen_candidate": "spectrum_band_pooling",
+      "frozen_architecture": "band_pooling",
+      "frozen_selection_mean_normalised_rmse": 0.2651875024962419,
+      "primary_metric": "mean_normalised_rmse",
+      "meaningful_improvement_fraction": 0.1,
+      "raw_time_parity_tolerance_fraction": 0.05,
+      "selection_studies": [
+        "20261003-233614_spectrum-position-readout-selection",
+        "20261003-234314_spectrum-position-capacity-selection"
+      ],
+      "no_further_tuning": true,
+      "limitations": "Same 200 recordings with overlapping repeated holdouts; validation also used for early stopping. New seeds test stability, not independent external generalisation. No significance or hidden-test accuracy claim."
+    },
+    "experiments": [
+      {
+        "id": "spectrum_gap_control",
+        "method": "spectrum",
+        "architecture": "average_pooling",
+        "noise_standard_deviation": 0.01
+      },
+      {
+        "id": "spectrum_band_pooling",
+        "method": "spectrum",
+        "architecture": "band_pooling",
+        "noise_standard_deviation": 0.01
+      },
+      {
+        "id": "spectrum_gap_wide",
+        "method": "spectrum",
+        "architecture": "average_pooling_wide",
+        "noise_standard_deviation": 0.01
+      },
+      {
+        "id": "time_raw_reference",
+        "method": "time",
+        "architecture": "aggressive",
+        "noise_standard_deviation": 0.0
+      }
+    ]
+  },
+  "effective_seeds": [
+    1053,
+    1153,
+    1253,
+    1353,
+    1453
+  ],
+  "effective_training": {
+    "epochs": 200,
+    "batch_size": 16,
+    "patience": 20
+  },
+  "source_sha256": {
+    "DataAnalysis_Common.py": "6a61a5abd7aac661620b88e045cad0861d5b8d0f25d4c1315a029ad6459e5418",
+    "SpectrumNetwork_Analysis.py": "99d7396967840ee07663672a247fb1e76e6e7816a16a2b5647d60333cc4c4a92",
+    "TimeSeriesCNN_Analysis.py": "dbb04ac7abc9c59e39fe7c21eb399bcd94c05c369fee4f0cdac90975a6ac7095",
+    "FeatureFCN_Analysis.py": "db1051ef7e4426951ef9cdd58d6839cd005fab6faba61603a0df8daec1c3d830",
+    "ExperimentFramework.py": "dd133c278048865f418c560a65b10b4db3d3058098cc1b0d82dd44f32efa19f5",
+    "RunReportStudies.py": "164a0c57cd7612134a6191164805620aa5d5896e7508e2929c3cc330b7dfccf8"
+  },
+  "data_sha256": {
+    "testing_signals.bin": "78824e3376948a856b4beac1a21818157ac220d7a2b98524843bfbb3bc923971",
+    "training_signals.bin": "525b8b505e42bb665bb681af34e17646e0a715ce76b914155c2acc16b91f28ae",
+    "training_targets.bin": "6bdd56a63927eb53876787e737ce26a8b7b901746b7f6a5acee1c200eb84f206"
+  },
+  "environment": {
+    "TF_NUM_INTRAOP_THREADS": "4",
+    "TF_NUM_INTEROP_THREADS": "1",
+    "TF_ENABLE_ONEDNN_OPTS": null
+  },
+  "public_edition_note": "Hashes refer to the original local run, not this adapted public source. Public data-file names replace the original course-specific names; file contents were not changed."
+}

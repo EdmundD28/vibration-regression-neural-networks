@@ -1,0 +1,25 @@
+{
+  "study_name": "spectrum-position-readout-selection",
+  "splits": {"seeds": [53, 153, 253, 353, 453], "validation_fraction": 0.2, "maximum_target_bins": 4},
+  "training": {"epochs": 200, "batch_size": 16, "patience": 20},
+  "research_protocol": {
+    "question": "Does retaining frequency position improve the spectrum CNN, with unchanged spectral input and convolutional backbone?",
+    "primary_metric": "mean_normalised_rmse",
+    "meaningful_improvement_fraction": 0.10,
+    "raw_time_parity_tolerance_fraction": 0.05,
+    "selection_rule": "Lowest five-split mean primary metric; report both physical target RMSEs and paired split differences.",
+    "confirmation_seeds": [1053, 1153, 1253, 1353, 1453],
+    "confirmation_rule": "Freeze the best position-preserving readout before examining new-split results; compare with historical GAP and raw-time references.",
+    "limitations": "Repeated holdouts share observations and use validation for early stopping. New seeds check stability, not an independent unseen dataset. No hidden-test accuracy claim.",
+    "spectrum_noise_standard_deviation": 0.01,
+    "raw_time_noise_standard_deviation": 0.0
+  },
+  "experiments": [
+    {"id": "spectrum_gap_control", "method": "spectrum", "architecture": "average_pooling", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_flatten", "method": "spectrum", "architecture": "flatten", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_band_pooling", "method": "spectrum", "architecture": "band_pooling", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_compact_flatten", "method": "spectrum", "architecture": "compact_flatten", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_gap_wide", "method": "spectrum", "architecture": "average_pooling_wide", "noise_standard_deviation": 0.01},
+    {"id": "time_raw_reference", "method": "time", "architecture": "aggressive", "noise_standard_deviation": 0.0}
+  ]
+}

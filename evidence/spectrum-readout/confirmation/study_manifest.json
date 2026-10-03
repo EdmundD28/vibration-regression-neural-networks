@@ -1,0 +1,92 @@
+{
+  "study_name": "spectrum-position-readout-confirmation",
+  "status": "complete",
+  "completed_runs": 20,
+  "expected_runs": 20,
+  "configuration_file": "experiments/spectrum_position_confirmation_study.json",
+  "created_at_local": "2026-10-03T23:49:02",
+  "python": "3.12.14",
+  "packages": {
+    "tensorflow": "2.20.0",
+    "numpy": "2.4.6",
+    "pandas": "3.0.5",
+    "scikit_learn": "1.9.0",
+    "shap": "not_used"
+  },
+  "target_stratification_bins": 4,
+  "experiments": [
+    {
+      "id": "spectrum_gap_control",
+      "method": "spectrum",
+      "model_kind": "neural",
+      "architecture": "average_pooling",
+      "noise_standard_deviation": 0.01,
+      "feature_set": "all",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "collect_xai": false
+    },
+    {
+      "id": "spectrum_band_pooling",
+      "method": "spectrum",
+      "model_kind": "neural",
+      "architecture": "band_pooling",
+      "noise_standard_deviation": 0.01,
+      "feature_set": "all",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "collect_xai": false
+    },
+    {
+      "id": "spectrum_gap_wide",
+      "method": "spectrum",
+      "model_kind": "neural",
+      "architecture": "average_pooling_wide",
+      "noise_standard_deviation": 0.01,
+      "feature_set": "all",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "collect_xai": false
+    },
+    {
+      "id": "time_raw_reference",
+      "method": "time",
+      "model_kind": "neural",
+      "architecture": "aggressive",
+      "noise_standard_deviation": 0.0,
+      "feature_set": "all",
+      "feature_window": "rectangular",
+      "fundamental_rule": "band_peak",
+      "collect_xai": false
+    }
+  ],
+  "splits": {
+    "seeds": [
+      1053,
+      1153,
+      1253,
+      1353,
+      1453
+    ],
+    "validation_fraction": 0.2,
+    "maximum_target_bins": 4
+  },
+  "training": {
+    "epochs": 200,
+    "batch_size": 16,
+    "patience": 20
+  },
+  "artifacts": [
+    "run_metrics.csv",
+    "summary_metrics.csv",
+    "split_assignments.csv",
+    "performance_summary.png",
+    "residual_summary.png"
+  ],
+  "excluded_by_design": [
+    "per-fold Keras models",
+    "per-fold training histories",
+    "hidden-test predictions during model selection"
+  ],
+  "public_edition_note": "Original labelled per-record predictions and private source snapshots are retained locally. Public evidence includes aggregate and split-level metrics, assignments and diagnostics."
+}

@@ -4,14 +4,14 @@ This file shows only the steps specific to the spectral approach:
 
 1. calculate a proper 0-500 Hz spectrum at 0.1 Hz resolution,
 2. apply log-amplitude preprocessing and one training-fitted scale, and
-3. define the one-dimensional spectral convolutional network.
+3. define a one-dimensional network retaining frequency-band positions.
 
 Only spectral amplitude is supplied to the model; frequency is retained only
 for interpretation and plotting.
 
 Run this method through the common experiment entry point:
 
-    python code/RunAll_Comparison.py --models spectrum
+    python src/RunAll_Comparison.py --models spectrum
 """
 
 import numpy as np
@@ -82,47 +82,75 @@ def buildSpectrumNetwork(
     noiseStandardDeviation,
     modelName="spectrum_cnn",
     layerSeed=None,
-    architecture="adopted",
+    architecture="band_pooling",
 ):
     """Build a declared fixed-resolution spectrum CNN.
 
-    ``average_pooling`` (and the backwards-compatible ``adopted`` label)
-    retains distributed harmonic evidence.  ``max_pooling`` is the matched
-    alternative used to test whether one dominant spectral region is enough.
+    ``adopted`` retains the historical average-pooling baseline so archived
+    study configurations remain reproducible. Position-preserving readouts
+    keep the same input, noise layer and three convolution/pooling blocks:
+    ``flatten`` keeps every remaining frequency position; ``band_pooling``
+    averages six neighbouring positions before flattening; ``compact_flatten``
+    projects channels to four before flattening. ``average_pooling_wide`` is
+    a parameter-count control for ``flatten`` at the project's 5,001 bins.
+    ``flatten_linear`` deletes the hidden dense layer; ``fine_pooling_linear``
+    also reduces each local pooling width to two. The current default is the
+    confirmed ``band_pooling`` readout (47,138 parameters).
     """
     if architecture == "adopted":
         architecture = "average_pooling"
+    localPoolSize = 2 if architecture == "fine_pooling_linear" else 4
+    backboneLayers = [
+        tf.keras.Input((numberOfFrequencyBins, 1)),
+        tf.keras.layers.GaussianNoise(noiseStandardDeviation, seed=layerSeed),
+        tf.keras.layers.Conv1D(16, 21, padding="same", activation="relu"),
+        tf.keras.layers.MaxPooling1D(localPoolSize),
+        tf.keras.layers.Conv1D(32, 11, padding="same", activation="relu"),
+        tf.keras.layers.MaxPooling1D(localPoolSize),
+        tf.keras.layers.Conv1D(64, 7, padding="same", activation="relu"),
+        tf.keras.layers.MaxPooling1D(localPoolSize),
+    ]
+    denseWidth = 32
     if architecture == "average_pooling":
-        globalPooling = tf.keras.layers.GlobalAveragePooling1D()
+        readoutLayers = [tf.keras.layers.GlobalAveragePooling1D()]
     elif architecture == "max_pooling":
-        globalPooling = tf.keras.layers.GlobalMaxPooling1D()
+        readoutLayers = [tf.keras.layers.GlobalMaxPooling1D()]
+    elif architecture in ("flatten", "flatten_linear", "fine_pooling_linear"):
+        readoutLayers = [tf.keras.layers.Flatten()]
+    elif architecture == "band_pooling":
+        readoutLayers = [
+            tf.keras.layers.AveragePooling1D(6),
+            tf.keras.layers.Flatten(),
+        ]
+    elif architecture == "compact_flatten":
+        readoutLayers = [
+            tf.keras.layers.Conv1D(4, 1, activation="relu"),
+            tf.keras.layers.Flatten(),
+        ]
+    elif architecture == "average_pooling_wide":
+        readoutLayers = [tf.keras.layers.GlobalAveragePooling1D()]
+        # Match the flatten head's parameter budget to the closest integer.
+        remainingPositions = int(numberOfFrequencyBins) // (4 ** 3)
+        denseWidth = max(1, round((remainingPositions * 64 * 32 + 96) / 67))
     else:
         raise ValueError(
             f"Unsupported spectrum architecture: {architecture}. "
-            "Use 'average_pooling' or 'max_pooling'."
+            "Use 'average_pooling', 'max_pooling', 'flatten', 'band_pooling', "
+            "'compact_flatten', 'average_pooling_wide', 'flatten_linear' "
+            "or 'fine_pooling_linear'."
         )
+
+    predictionLayers = (
+        [tf.keras.layers.Dense(2)]
+        if architecture in ("flatten_linear", "fine_pooling_linear")
+        else [tf.keras.layers.Dense(denseWidth, activation="relu"), tf.keras.layers.Dense(2)]
+    )
 
     return tf.keras.Sequential(
         [
-            tf.keras.Input((numberOfFrequencyBins, 1)),
-            tf.keras.layers.GaussianNoise(
-                noiseStandardDeviation, seed=layerSeed
-            ),
-            tf.keras.layers.Conv1D(
-                16, 21, padding="same", activation="relu"
-            ),
-            tf.keras.layers.MaxPooling1D(4),
-            tf.keras.layers.Conv1D(
-                32, 11, padding="same", activation="relu"
-            ),
-            tf.keras.layers.MaxPooling1D(4),
-            tf.keras.layers.Conv1D(
-                64, 7, padding="same", activation="relu"
-            ),
-            tf.keras.layers.MaxPooling1D(4),
-            globalPooling,
-            tf.keras.layers.Dense(32, activation="relu"),
-            tf.keras.layers.Dense(2),
+            *backboneLayers,
+            *readoutLayers,
+            *predictionLayers,
         ],
         name=modelName,
     )

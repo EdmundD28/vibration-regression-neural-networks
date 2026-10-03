@@ -1,0 +1,22 @@
+{
+  "study_name": "spectrum-position-readout-confirmation",
+  "splits": {"seeds": [1053, 1153, 1253, 1353, 1453], "validation_fraction": 0.2, "maximum_target_bins": 4},
+  "training": {"epochs": 200, "batch_size": 16, "patience": 20},
+  "research_protocol": {
+    "frozen_candidate": "spectrum_band_pooling",
+    "frozen_architecture": "band_pooling",
+    "frozen_selection_mean_normalised_rmse": 0.2651875024962419,
+    "primary_metric": "mean_normalised_rmse",
+    "meaningful_improvement_fraction": 0.10,
+    "raw_time_parity_tolerance_fraction": 0.05,
+    "selection_studies": ["20261003-233614_spectrum-position-readout-selection", "20261003-234314_spectrum-position-capacity-selection"],
+    "no_further_tuning": true,
+    "limitations": "Same 200 recordings with overlapping repeated holdouts; validation also used for early stopping. New seeds test stability, not independent external generalisation. No significance or hidden-test accuracy claim."
+  },
+  "experiments": [
+    {"id": "spectrum_gap_control", "method": "spectrum", "architecture": "average_pooling", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_band_pooling", "method": "spectrum", "architecture": "band_pooling", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_gap_wide", "method": "spectrum", "architecture": "average_pooling_wide", "noise_standard_deviation": 0.01},
+    {"id": "time_raw_reference", "method": "time", "architecture": "aggressive", "noise_standard_deviation": 0.0}
+  ]
+}

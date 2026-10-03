@@ -8,6 +8,9 @@ reproducibility evidence.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
+import os
 from pathlib import Path
 import time
 
@@ -549,8 +552,13 @@ def main():
 
     import pandas as pd
     import sklearn
-    import shap
     import tensorflow as tf
+
+    # Spectrum/time studies do not need the optional feature-SHAP dependency.
+    shapVersion = "not_used"
+    if any(item.collect_xai and item.method == "feature" for item in experiments):
+        import shap
+        shapVersion = shap.__version__
 
     trainingConfiguration = configuration["training"]
     epochs = 1 if args.smoke else int(trainingConfiguration["epochs"])
@@ -566,6 +574,35 @@ def main():
         args.output_root, studyName
     )
     print(f"Checkpoint folder: {studyFolder}")
+    # Freeze the actual settings and source used, independent of later edits.
+    sourceFolder = studyFolder / "source_snapshot"
+    sourceFolder.mkdir()
+    sourceHashes = {}
+    for sourceName in (
+        "DataAnalysis_Common.py", "SpectrumNetwork_Analysis.py",
+        "TimeSeriesCNN_Analysis.py", "FeatureFCN_Analysis.py",
+        "ExperimentFramework.py", "RunReportStudies.py",
+    ):
+        sourceBytes = (Path(__file__).parent / sourceName).read_bytes()
+        (sourceFolder / sourceName).write_bytes(sourceBytes)
+        sourceHashes[sourceName] = hashlib.sha256(sourceBytes).hexdigest()
+    provenance = {
+        "configuration": configuration,
+        "effective_seeds": list(seeds),
+        "effective_training": {"epochs": epochs, "batch_size": batchSize, "patience": patience},
+        "source_sha256": sourceHashes,
+        "data_sha256": {
+            path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+            for path in sorted(args.data_dir.resolve().glob("*.bin"))
+        },
+        "environment": {
+            name: os.environ.get(name)
+            for name in ("TF_NUM_INTRAOP_THREADS", "TF_NUM_INTEROP_THREADS", "TF_ENABLE_ONEDNN_OPTS", "PYTHONPATH")
+        },
+    }
+    (studyFolder / "study_provenance.json").write_text(
+        json.dumps(provenance, indent=2), encoding="utf-8"
+    )
     saveFeatureDiagnostics(studyFolder, xTrain, yTrain, experiments)
     metricRows = []
     predictionRows = []
@@ -577,7 +614,7 @@ def main():
         "numpy": np.__version__,
         "pandas": pd.__version__,
         "scikit_learn": sklearn.__version__,
-        "shap": shap.__version__,
+        "shap": shapVersion,
     }
 
     for split in splits:

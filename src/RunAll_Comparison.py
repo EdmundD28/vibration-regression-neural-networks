@@ -12,19 +12,19 @@ Examples
 --------
 Check the local data files without importing TensorFlow:
 
-    python code/RunAll_Comparison.py --check-only
+    python src/RunAll_Comparison.py --check-only
 
 Run one method for a short lab demonstration:
 
-    python code/RunAll_Comparison.py --models feature --epochs 2
+    python src/RunAll_Comparison.py --models feature --epochs 2
 
 Run the complete comparison:
 
-    python code/RunAll_Comparison.py
+    python src/RunAll_Comparison.py
 
 Run a matched Gaussian-noise augmentation study:
 
-    python code/RunAll_Comparison.py --augmentation-study
+    python src/RunAll_Comparison.py --augmentation-study
 """
 
 import argparse
@@ -92,6 +92,14 @@ def parseArguments():
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--patience", type=int, default=20)
+    parser.add_argument(
+        "--spectrum-architecture",
+        choices=("adopted", "average_pooling", "max_pooling", "flatten",
+                 "band_pooling", "compact_flatten", "average_pooling_wide",
+                 "flatten_linear", "fine_pooling_linear"),
+        default="band_pooling",
+        help="Spectrum readout; 'adopted' reproduces the historical global-average baseline.",
+    )
     parser.add_argument(
         "--seed",
         type=int,
@@ -332,6 +340,7 @@ def main():
                 0.0,
                 modelName="spectrum_cnn_control",
                 layerSeed=runSeed,
+                architecture=args.spectrum_architecture,
             )
             tf.keras.utils.set_random_seed(runSeed)
             spectrumAugmented = buildSpectrumNetwork(
@@ -340,6 +349,7 @@ def main():
                 args.noise_augmentation,
                 modelName="spectrum_cnn_augmented",
                 layerSeed=runSeed,
+                architecture=args.spectrum_architecture,
             )
             spectrumAugmented.set_weights(spectrumControl.get_weights())
             modelData["spectrum_control"] = (
@@ -361,6 +371,7 @@ def main():
                 tf,
                 xTrainSpectrum.shape[1],
                 args.noise_augmentation,
+                architecture=args.spectrum_architecture,
             )
             modelData["spectrum"] = (
                 mySpectrumNetwork,
@@ -482,6 +493,7 @@ def main():
         groupedRelevance,
         runSeed,
         args.show,
+        spectrumArchitecture=args.spectrum_architecture if "spectrum" in args.models else None,
     )
 
     # -------------------------------------------------------------------------

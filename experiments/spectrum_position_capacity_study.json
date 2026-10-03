@@ -1,0 +1,19 @@
+{
+  "study_name": "spectrum-position-capacity-selection",
+  "splits": {"seeds": [53, 153, 253, 353, 453], "validation_fraction": 0.2, "maximum_target_bins": 4},
+  "training": {"epochs": 200, "batch_size": 16, "patience": 20},
+  "research_protocol": {
+    "phase": "Adaptive second selection stage; confirmation splits still untouched.",
+    "rationale": "The first selection stage shows large gains from frequency position, but still trails raw-time CNN. Test whether a simpler readout reduces overfitting and whether local pooling still removes useful frequency resolution.",
+    "primary_metric": "mean_normalised_rmse",
+    "selection_rule": "Choose the lowest five-split mean across the original three position-preserving candidates and these two; freeze before confirmation.",
+    "reference_study": "20261003-233614_spectrum-position-readout-selection",
+    "comparison": "flatten_linear versus flatten isolates replacement of Dense(32)-ReLU-Dense(2) by Dense(2); fine_pooling_linear versus flatten_linear isolates local pooling width 2 versus 4.",
+    "confirmation_seeds": [1053, 1153, 1253, 1353, 1453],
+    "no_further_tuning_after_confirmation": true
+  },
+  "experiments": [
+    {"id": "spectrum_flatten_linear", "method": "spectrum", "architecture": "flatten_linear", "noise_standard_deviation": 0.01},
+    {"id": "spectrum_fine_pooling_linear", "method": "spectrum", "architecture": "fine_pooling_linear", "noise_standard_deviation": 0.01}
+  ]
+}

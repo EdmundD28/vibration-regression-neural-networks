@@ -1,0 +1,61 @@
+{
+  "status": "passed",
+  "architectures": [
+    {
+      "architecture": "average_pooling",
+      "parameters": 22562,
+      "readout_width": 64,
+      "frequency_shift_distinguished": false,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "max_pooling",
+      "parameters": 22562,
+      "readout_width": 64,
+      "frequency_shift_distinguished": false,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "flatten",
+      "parameters": 180258,
+      "readout_width": 4992,
+      "frequency_shift_distinguished": true,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "band_pooling",
+      "parameters": 47138,
+      "readout_width": 832,
+      "frequency_shift_distinguished": true,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "compact_flatten",
+      "parameters": 30758,
+      "readout_width": 312,
+      "frequency_shift_distinguished": true,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "average_pooling_wide",
+      "parameters": 180280,
+      "readout_width": 64,
+      "frequency_shift_distinguished": false,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "flatten_linear",
+      "parameters": 30402,
+      "readout_width": 4992,
+      "frequency_shift_distinguished": true,
+      "serialization_verified": true
+    },
+    {
+      "architecture": "fine_pooling_linear",
+      "parameters": 100418,
+      "readout_width": 40000,
+      "frequency_shift_distinguished": true,
+      "serialization_verified": true
+    }
+  ]
+}
